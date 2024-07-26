@@ -1,4 +1,4 @@
-// =========================
+// =====================================
 //  ,__,  
 //  (O.o)   .aux was here | beware of the owl
 //  /)__)    UART ttl UHF RFID.
@@ -82,6 +82,7 @@ void Rx() {
     } else {
       Serial.println("Buffer overflow.");
       bufferIndex = 0;
+      memset(buffer, 0, BUFFER_SIZE);
       return;
     }
   }
