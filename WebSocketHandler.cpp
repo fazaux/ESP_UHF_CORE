@@ -11,6 +11,7 @@ extern AsyncWebSocketClient *_ctxSocket;
 
 // function prototype
 void WssResponseJson(const char* event, int statuscode, const char* message);
+void WssResponseRfidEvent(const char* event, int statuscode, const char* epc, const char* tid, const char* rssi, const char* ant);
 
 void _WssListenHandle(char* data, size_t length) {
   StaticJsonDocument<256> json;
@@ -124,6 +125,23 @@ void WssResponseJson(const char* event, int statuscode, const char* message) {
   doc["event"] = event;
   doc["statusCode"] = statuscode;
   doc["message"] = message;
+  String jsonString;
+  serializeJson(doc, jsonString);
+  if (_ctxSocket != nullptr) {
+    _ctxSocket->text(jsonString.c_str());
+  } else {
+    Serial.println("No client connected");
+  }
+}
+
+void WssResponseRfidEvent(const char* event, int statuscode, const char* epc, const char* tid, const char* rssi, const char* ant){
+  StaticJsonDocument<200> doc;
+  doc["event"] = event;
+  doc["statusCode"] = statuscode;
+  doc["epc"] = epc;
+  doc["tid"] = tid;
+  doc["rssi"] = rssi;
+  doc["ant"] = ant;
   String jsonString;
   serializeJson(doc, jsonString);
   if (_ctxSocket != nullptr) {
