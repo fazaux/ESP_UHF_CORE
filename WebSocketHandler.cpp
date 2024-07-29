@@ -60,8 +60,9 @@ void _WssListenHandle(char* data, size_t length) {
           Serial.println("[set-power]");
           setA = (decimalValue >> 8) & 0xFF; // High byte
           setB = decimalValue & 0xFF;        // Low byte
-          byte setPower[] = { 0xA5, 0x5A, 0x00, 0x0E, 0x10, 0x02, 0x01, setA, setB, setA, setB, 0x1D, 0x0D, 0x0A };
+          byte setPower[] = { 0xC8, 0x8C, 0x00, 0x0E, 0x10, 0x02, 0x01, setA, setB, setA, setB, 0x1D, 0x0D, 0x0A };
           Serial2.write(setPower, sizeof(setPower));
+          WssResponseJson(event, 1, "success");
         }
       } else {
         WssResponseJson(event, 0, "Value is not an integer");
@@ -112,7 +113,7 @@ void _WssListenHandle(char* data, size_t length) {
       Serial.println("event not valid!");
       WssResponseJson("error", 0, "event not valid");
     }
-
+  delay(50);
   } else {
     WssResponseJson("error", 0, "Failed Json Format");
   }
@@ -135,6 +136,7 @@ void WssResponseJson(const char* event, int statuscode, const char* message) {
 }
 
 void WssResponseRfidEvent(const char* event, int statuscode, const char* epc, const char* tid, const char* rssi, const char* ant){
+  delay(10);
   StaticJsonDocument<200> doc;
   doc["event"] = event;
   doc["statusCode"] = statuscode;

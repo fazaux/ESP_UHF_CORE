@@ -60,60 +60,42 @@ void loop() {
 }
 
 void Rx() {
-  // **Read wait until Rx not avail
-  while (Serial2.available()) {
-    byte b = Serial2.read();
-    if (bufferIndex < BUFFER_SIZE) {
-      buffer[bufferIndex++] = b;
-    } else {
-      Serial.println("Buffer overflow.");
-      bufferIndex = 0;
-      memset(buffer, 0, BUFFER_SIZE);
-      return;
-    }
-  }
-  //**process**
-  //***************
-  processBuffer();
-  //***************
-  
-}
+    int bytesToRead = Serial2.available();
+    if (bytesToRead > 0) {
+        byte buffer[bytesToRead];
+        Serial2.readBytes(buffer, bytesToRead);
 
-void processBuffer() {
-  size_t i = 0;
+        int i = 0;
 
-  while (i <= bufferIndex - sizeof(_header) - sizeof(_endFrame)) {
-    // Check for header
-    if (buffer[i] == _header[0] && buffer[i + 1] == _header[1]) {
-      // Frame length
-      int frameLength = (buffer[i + 2] << 8) + buffer[i + 3];
-      // Check if the frame length matches the remaining data length
-      if (i + frameLength <= bufferIndex) {
-        // Check for footer
-        if (buffer[i + frameLength - sizeof(_endFrame)] == _endFrame[0] &&
-            buffer[i + frameLength - 1] == _endFrame[1]) {
-          byte frame[frameLength]; // Valid frame found
-          memcpy(frame, buffer + i, frameLength);
-          delay(10);
-          RxDecode(frame, frameLength); // Move index to the end of the current frame
-          i += frameLength;
-        } else {
-          i += 2; // Invalid footer, skip this frame and continue searching
+        while (i <= bytesToRead - sizeof(_header) - 2 - sizeof(_endFrame)) {
+            // Check for header
+            if (buffer[i] == _header[0] && buffer[i + 1] == _header[1]) {
+                // Check for frame length
+                int frameLength = (buffer[i + 2] << 8) + buffer[i + 3];
+
+                // Check if the frame length matches the remaining data length
+                if (i + frameLength <= bytesToRead) {
+                    // Check for footer
+                    if (buffer[i + frameLength - 2] == _endFrame[0] && buffer[i + frameLength - 1] == _endFrame[1]) {
+                        // Valid frame found
+                        byte frame[frameLength];
+                        memcpy(frame, buffer + i, frameLength);
+                        RxDecode(frame, frameLength);
+                        // Move index to the end of the current frame
+                        i += frameLength;
+                    } else {
+                        // Invalid footer, skip this frame and continue searching
+                        i += 2;
+                    }
+                } else {
+                    // Incomplete frame, wait for more data
+                    break;
+                }
+            } else {
+                i++; // Move forward to continue searching for the next header
+            }
         }
-      } else {
-        break; // Incomplete frame, wait for more data
-      }
-    } else {
-      i++;
     }
-  }
-  // Clear buffer if there are any remaining bytes after processing
-  if (i < bufferIndex) {
-    memmove(buffer, buffer + i, bufferIndex - i);
-    bufferIndex -= i;
-  } else {
-    bufferIndex = 0; // Reset buffer if no bytes remain
-  }
 }
 
 void onWebSocketEvent(AsyncWebSocket * server, 
