@@ -22,7 +22,7 @@ String password;
 const char* ap_ssid = "WIFI_CONFIG";
 const byte DNS_PORT = 53;
 
-const size_t BUFFER_SIZE = 256; 
+const size_t BUFFER_SIZE = 1024; 
 byte buffer[BUFFER_SIZE];
 size_t bufferIndex = 0;
 
@@ -126,6 +126,8 @@ void RxDecode(const byte* rx, size_t length) {
     return;
   }
 
+  delay(15);
+
   // Process based on the command byte (rx[4])
   switch (rx[4]) {
     case 0x03: {
@@ -200,17 +202,18 @@ void RxDecode(const byte* rx, size_t length) {
       ant += String(rx[antStart], HEX);
                   // Print extracted values
       Serial.print("EPC: ");
-      Serial.println(epc);
+      Serial.print(epc);
       Serial.print("TID: ");
-      Serial.println(tid);
+      Serial.print(tid);
       Serial.print("RSSI: ");
-      Serial.println(rssi);
+      Serial.print(rssi);
       Serial.print("ATN: ");
-      Serial.println(ant);
-
+      Serial.print(ant);
+      Serial.println("");
       tone(BUZZER_PIN,3300, 50);
+      delay(10);
       // WssResponseRfidEvent(const char* event, int statuscode, const char* epc, const char* tid, const char* rssi, const char* ant)
-      WssResponseRfidEvent("response-rfid-result", 1, epc.c_str(), tid.c_str(), rssi.c_str(), ant.c_str());
+      // WssResponseRfidEvent("response-rfid-result", 1, epc.c_str(), tid.c_str(), rssi.c_str(), ant.c_str());
       break;
     }
     default:
