@@ -12,7 +12,9 @@ extern AsyncWebSocketClient *_ctxSocket;
 // function prototype
 void WssResponseJson(const char* event, int statuscode, const char* message);
 void WssResponseRfidEvent(const char* event, int statuscode, const char* epc, const char* tid, const char* rssi, const char* ant);
+void TX_StartScan();
 void TX_StopScan();
+
 
 
 void _WssListenHandle(char* data, size_t length) {
@@ -94,6 +96,11 @@ void TX_StopScan(){
   Serial.print("[TX] Stop Scan");
   static const byte stopScan[] = { 0xC8, 0x8C, 0x00, 0x08, 0x8C, 0x84, 0x0D, 0x0A };
   Serial2.write(stopScan, sizeof(stopScan));
+}
+void TX_StartScan(){
+  Serial.print("[TX] Start Scan");
+  static const byte continouesScan[] = { 0xC8, 0x8C, 0x00, 0x0A, 0x82, 0x27, 0x10, 0xBF, 0x0D, 0x0A };
+  Serial2.write(continouesScan, sizeof(continouesScan));
 }
 
 

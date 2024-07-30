@@ -17,6 +17,12 @@
 #include "WebSocketHandler.h"
 
 #define BUZZER_PIN 18
+#define BUTTON_PIN 4
+
+int buttonState = 0;    
+int lastButtonState = 0;
+bool BTN_SCAN_ON_STATE = false;
+
 String ssid;
 String password;
 const char* ap_ssid = "UHF_RFID";
@@ -40,7 +46,8 @@ void setup() {
   EEPROM.begin(512);
   Serial.begin(115200);  
   Serial2.begin(115200, SERIAL_8N1, 16, 17);
-  
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+
   initWifiConfig();
   TX_StopScan();
 }
@@ -52,6 +59,26 @@ void loop() {
       shouldSaveConfig = false;
   }
   dnsServer.processNextRequest();
+  
+  //** handle Button function**
+  buttonState = digitalRead(BUTTON_PIN);
+  if (buttonState == LOW && lastButtonState == HIGH) {
+    delay(50);
+    BTN_SCAN_ON_STATE = !BTN_SCAN_ON_STATE;
+    Serial.print("button:");
+    Serial.println(BTN_SCAN_ON_STATE);
+    if (BTN_SCAN_ON_STATE) {
+      Serial.println("[Start]");
+      TX_StartScan();
+    } else {
+      Serial.println("[Stop]");
+      TX_StopScan();
+    }
+    lastButtonState = buttonState;
+  }
+
+  lastButtonState = buttonState;
+ 
 
   // ***Handle Rx gate from sensor**
   // *******************************
@@ -129,8 +156,6 @@ void RxDecode(const byte* rx, size_t length) {
     return;
   }
 
-  delay(50);
-
   // Process based on the command byte (rx[4])
   switch (rx[4]) {
     case 0x03: {
@@ -203,22 +228,19 @@ void RxDecode(const byte* rx, size_t length) {
       String ant;
       if (rx[antStart] < 0x10) ant += "0";  // Add leading zero for single hex digits
       ant += String(rx[antStart], HEX);
-                  // Print extracted values
-      Serial.print("EPC: ");
-      Serial.print(epc);
-      Serial.print("TID: ");
-      Serial.print(tid);
-      Serial.print("RSSI: ");
-      Serial.print(rssi);
-      Serial.print("ATN: ");
-      Serial.print(ant);
-      Serial.println("");
       tone(BUZZER_PIN,3300, 50);
+      delay(100);
       WssResponseRfidEvent("response-rfid-result", 1, epc.c_str(), tid.c_str(), rssi.c_str(), ant.c_str());
       break;
     }
     default:
-      Serial.println("Unknown command.");
+      for (int i = 0; i < length; i++) {
+            if (rx[i] < 0x10) {
+                Serial.print("0"); // Add a leading zero for single-digit values
+            }
+            Serial.print(rx[i], HEX);
+            Serial.print(" ");
+      }
       break;
   }
 }
