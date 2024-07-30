@@ -12,6 +12,8 @@ extern AsyncWebSocketClient *_ctxSocket;
 // function prototype
 void WssResponseJson(const char* event, int statuscode, const char* message);
 void WssResponseRfidEvent(const char* event, int statuscode, const char* epc, const char* tid, const char* rssi, const char* ant);
+void TX_StopScan();
+
 
 void _WssListenHandle(char* data, size_t length) {
   StaticJsonDocument<256> json;
@@ -68,38 +70,6 @@ void _WssListenHandle(char* data, size_t length) {
         WssResponseJson(event, 0, "Value is not an integer");
       }
     }
-    else if(strcmp(event, "set-rfid-power-30") == 0){
-      int intValue = 30;
-      int decimalValue = intValue * 100;
-      Serial.println("[tx] set-power:");
-      Serial.print(decimalValue);
-      if (decimalValue > 0xFFFF) {
-        Serial.println("Error: Payload too large.");
-      }else{
-        byte setA, setB;
-        Serial.println("[set-power]");
-        setA = (decimalValue >> 8) & 0xFF; // High byte
-        setB = decimalValue & 0xFF;        // Low byte
-        byte setPower[] = { 0xA5, 0x5A, 0x00, 0x0E, 0x10, 0x02, 0x01, setA, setB, setA, setB, 0x1D, 0x0D, 0x0A };
-        Serial2.write(setPower, sizeof(setPower));
-      }
-    }
-    else if(strcmp(event, "set-rfid-power-5") == 0){
-      int intValue = 5;
-      int decimalValue = intValue * 100;
-      Serial.println("[tx] set-power:");
-      Serial.print(decimalValue);
-      if (decimalValue > 0xFFFF) {
-        Serial.println("Error: Payload too large.");
-      }else{
-        byte setA, setB;
-        Serial.println("[set-power]");
-        setA = (decimalValue >> 8) & 0xFF; // High byte
-        setB = decimalValue & 0xFF;        // Low byte
-        byte setPower[] = { 0xA5, 0x5A, 0x00, 0x0E, 0x10, 0x02, 0x01, setA, setB, setA, setB, 0x1D, 0x0D, 0x0A };
-        Serial2.write(setPower, sizeof(setPower));
-      }
-    }
     else if(strcmp(event, "set-tone-on") == 0){
       int value = json["value"];
       tone(BUZZZER_PIN,value);
@@ -119,6 +89,12 @@ void _WssListenHandle(char* data, size_t length) {
   }
 }
 
+// TX Command
+void TX_StopScan(){
+  Serial.print("[TX] Stop Scan");
+  static const byte stopScan[] = { 0xC8, 0x8C, 0x00, 0x08, 0x8C, 0x84, 0x0D, 0x0A };
+  Serial2.write(stopScan, sizeof(stopScan));
+}
 
 
 void WssResponseJson(const char* event, int statuscode, const char* message) {

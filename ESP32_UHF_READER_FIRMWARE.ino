@@ -19,7 +19,7 @@
 #define BUZZER_PIN 18
 String ssid;
 String password;
-const char* ap_ssid = "WIFI_CONFIG";
+const char* ap_ssid = "UHF_RFID";
 const byte DNS_PORT = 53;
 
 const size_t BUFFER_SIZE = 1024; 
@@ -42,6 +42,7 @@ void setup() {
   Serial2.begin(115200, SERIAL_8N1, 16, 17);
   
   initWifiConfig();
+  TX_StopScan();
 }
 
 void loop() {
@@ -108,8 +109,10 @@ void onWebSocketEvent(AsyncWebSocket * server,
   if (type == WS_EVT_CONNECT) {
     Serial.println("WebSocket client connected");
     _ctxSocket = client;
+    TX_StopScan();
   } else if (type == WS_EVT_DISCONNECT) {
     Serial.println("WebSocket client disconnected");
+    TX_StopScan();
   } else if (type == WS_EVT_DATA) {
     Serial.printf("Data received: %s\n", data);
     char* receivedData = (char*)data;
@@ -126,7 +129,7 @@ void RxDecode(const byte* rx, size_t length) {
     return;
   }
 
-  delay(15);
+  delay(50);
 
   // Process based on the command byte (rx[4])
   switch (rx[4]) {
@@ -211,9 +214,7 @@ void RxDecode(const byte* rx, size_t length) {
       Serial.print(ant);
       Serial.println("");
       tone(BUZZER_PIN,3300, 50);
-      delay(10);
-      // WssResponseRfidEvent(const char* event, int statuscode, const char* epc, const char* tid, const char* rssi, const char* ant)
-      // WssResponseRfidEvent("response-rfid-result", 1, epc.c_str(), tid.c_str(), rssi.c_str(), ant.c_str());
+      WssResponseRfidEvent("response-rfid-result", 1, epc.c_str(), tid.c_str(), rssi.c_str(), ant.c_str());
       break;
     }
     default:
