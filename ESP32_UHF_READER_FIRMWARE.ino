@@ -15,6 +15,8 @@
 #include <EEPROM.h>
 // ========= include custom module =====
 #include "WebSocketHandler.h"
+#include "Utils.h"
+#include "HTMLPage.h"
 
 #define BUZZER_PIN 18
 #define BUTTON_PIN 4
@@ -25,7 +27,7 @@ bool BTN_SCAN_ON_STATE = false;
 
 String ssid;
 String password;
-const char* ap_ssid = "UHF_RFID";
+const char* ap_ssid = "UHF_RFID_ESP32_WROOM";
 const byte DNS_PORT = 53;
 
 const size_t BUFFER_SIZE = 1024; 
@@ -50,6 +52,7 @@ void setup() {
 
   initWifiConfig();
   TX_StopScan();
+  RingTone();
 }
 
 void loop() {
@@ -63,7 +66,7 @@ void loop() {
   //** handle Button function**
   buttonState = digitalRead(BUTTON_PIN);
   if (buttonState == LOW && lastButtonState == HIGH) {
-    delay(50);
+    delay(500);
     BTN_SCAN_ON_STATE = !BTN_SCAN_ON_STATE;
     Serial.print("button:");
     Serial.println(BTN_SCAN_ON_STATE);
@@ -228,8 +231,8 @@ void RxDecode(const byte* rx, size_t length) {
       String ant;
       if (rx[antStart] < 0x10) ant += "0";  // Add leading zero for single hex digits
       ant += String(rx[antStart], HEX);
-      tone(BUZZER_PIN,3300, 50);
-      delay(100);
+      tone(BUZZER_PIN,3300, 20);
+      delay(50);
       WssResponseRfidEvent("response-rfid-result", 1, epc.c_str(), tid.c_str(), rssi.c_str(), ant.c_str());
       break;
     }
@@ -313,7 +316,7 @@ void startAP() {
 void capasitivePortDomain(){
   // Start the web server for the captive portal
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(200, "text/html", HTMLcaptivePortal());
+        request->send(200, "text/html", HTMLPage());
     });
     server.on("/save", HTTP_POST, [](AsyncWebServerRequest *request){
         if (request->hasParam("ssid", true) && request->hasParam("password", true)) {
@@ -336,13 +339,13 @@ void capasitivePortDomain(){
     }
 }
 
-String HTMLcaptivePortal() {
-    String page = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">";
-    page += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">";
-    page += "<title>WiFi Configuration</title></head><body>";
-    page += "<h1>Configure WiFi</h1><form action=\"/save\" method=\"post\">";
-    page += "<label for=\"ssid\">SSID:</label><input type=\"text\" id=\"ssid\" name=\"ssid\"><br>";
-    page += "<label for=\"password\">Password:</label><input type=\"password\" id=\"password\" name=\"password\"><br>";
-    page += "<input type=\"submit\" value=\"Save\"></form></body></html>";
-    return page;
-}
+// String HTMLcaptivePortal() {
+//     String page = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">";
+//     page += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">";
+//     page += "<title>WiFi Configuration</title></head><body>";
+//     page += "<h1>Configure WiFi</h1><form action=\"/save\" method=\"post\">";
+//     page += "<label for=\"ssid\">SSID:</label><input type=\"text\" id=\"ssid\" name=\"ssid\"><br>";
+//     page += "<label for=\"password\">Password:</label><input type=\"password\" id=\"password\" name=\"password\"><br>";
+//     page += "<input type=\"submit\" value=\"Save\"></form></body></html>";
+//     return page;
+// }

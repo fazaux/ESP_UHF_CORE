@@ -96,6 +96,11 @@ void TX_StopScan(){
   Serial.print("[TX] Stop Scan");
   static const byte stopScan[] = { 0xC8, 0x8C, 0x00, 0x08, 0x8C, 0x84, 0x0D, 0x0A };
   Serial2.write(stopScan, sizeof(stopScan));
+  for (int i = 0; i <= 2; i++) {
+      static const byte stopScan[] = { 0xC8, 0x8C, 0x00, 0x08, 0x8C, 0x84, 0x0D, 0x0A };
+      Serial2.write(stopScan, sizeof(stopScan));
+      delay(50);
+  }
 }
 void TX_StartScan(){
   Serial.print("[TX] Start Scan");
