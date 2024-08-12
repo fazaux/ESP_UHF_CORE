@@ -47,7 +47,7 @@ bool shouldSaveConfig = true;
 void setup() {
   EEPROM.begin(512);
   Serial.begin(115200);  
-  Serial2.begin(115200, SERIAL_8N1, 16, 17);
+  Serial2.begin(115200, SERIAL_8N1, 16, 17); //RT, TX
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
   initWifiConfig();
@@ -332,20 +332,9 @@ void capasitivePortDomain(){
     });
     server.begin();
     // Set up mDNS
-    if (!MDNS.begin("deras-rfid-config")) {
+    if (!MDNS.begin("deras-setup")) {
         Serial.println("Error starting mDNS");
     } else {
-        Serial.println("mDNS started with domain: deras-rfid-config.local");
+        Serial.println("mDNS started with domain: deras-setup.local");
     }
 }
-
-// String HTMLcaptivePortal() {
-//     String page = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">";
-//     page += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">";
-//     page += "<title>WiFi Configuration</title></head><body>";
-//     page += "<h1>Configure WiFi</h1><form action=\"/save\" method=\"post\">";
-//     page += "<label for=\"ssid\">SSID:</label><input type=\"text\" id=\"ssid\" name=\"ssid\"><br>";
-//     page += "<label for=\"password\">Password:</label><input type=\"password\" id=\"password\" name=\"password\"><br>";
-//     page += "<input type=\"submit\" value=\"Save\"></form></body></html>";
-//     return page;
-// }

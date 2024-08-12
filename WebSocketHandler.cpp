@@ -99,15 +99,16 @@ void TX_StopScan(){
   for (int i = 0; i <= 2; i++) {
       static const byte stopScan[] = { 0xC8, 0x8C, 0x00, 0x08, 0x8C, 0x84, 0x0D, 0x0A };
       Serial2.write(stopScan, sizeof(stopScan));
-      delay(50);
+      tone(18,330, 100);
+      delay(1000);
   }
 }
 void TX_StartScan(){
   Serial.print("[TX] Start Scan");
   static const byte continouesScan[] = { 0xC8, 0x8C, 0x00, 0x0A, 0x82, 0x27, 0x10, 0xBF, 0x0D, 0x0A };
   Serial2.write(continouesScan, sizeof(continouesScan));
+  delay(1000);
 }
-
 
 void WssResponseJson(const char* event, int statuscode, const char* message) {
   StaticJsonDocument<200> doc;
